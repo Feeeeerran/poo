@@ -1,0 +1,10 @@
+Robot ABB IRB 460 ENCENDIDO
+{ M17 }
+     Fecha: 14/01/22 Hora: 12:19:36
+
+{ G01 X0000 Y0000 Z3690 F2500.0 } 
+     Fecha: 14/01/22 Hora: 12:20:01
+
+
+     Fecha: 14/01/22 Hora: 12:20:33
+
