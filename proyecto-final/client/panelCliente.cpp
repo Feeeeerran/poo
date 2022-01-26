@@ -59,35 +59,34 @@ void PanelCliente::manual(XmlRpc::XmlRpcClient c,int accion,bool arranque,bool c
         if (accion == 1) {
         // 1.Mov angular articular
             XmlRpc::XmlRpcValue params, result;
-            char mov[20];
-            string movi;
-            cin.getline(mov,20,'\n');
+            char mov[30];
+            cin.getline(mov,30,'\n');
 
-            // cout << "Para la primer articulacion:" << endl;
-            // cout << "V1[mm/s] = ";
-            // cin >> mov[0];
-            // cout << "S1 [1/0]= ";
-            // cin >> mov[1];
-            // cout << "q1[º] = ";
-            // cin >> mov[2];
+            cout << "Para la primer articulacion:" << endl;
+            cout << "V1[mm/s] = ";
+            cin >> mov[0];
+            cout << "S1 [1/0]= ";
+            cin >> mov[1];
+            cout << "q1[º] = ";
+            cin >> mov[2];
 
-            // cout << "Para la segunda articulacion:" << endl;
-            // cout << "V2[mm/s] = ";
-            // cin >> mov[3];
-            // cout << "S2 [1/0]= ";
-            // cin >> mov[4];
-            // cout << "q2[º] = ";
-            // cin >> mov[5];
+            cout << "Para la segunda articulacion:" << endl;
+            cout << "V2[mm/s] = ";
+            cin >> mov[3];
+            cout << "S2 [1/0]= ";
+            cin >> mov[4];
+            cout << "q2[º] = ";
+            cin >> mov[5];
 
-            // cout << "Para la tercer articulacion:" << endl;
-            // cout << "V3[mm/s] = ";
-            // cin >> mov[6];
-            // cout << "S3 [1/0]= ";
-            // cin >> mov[7];
-            // cout << "q3[º] = ";
-            // cin >> mov[8];
+            cout << "Para la tercer articulacion:" << endl;
+            cout << "V3[mm/s] = ";
+            cin >> mov[6];
+            cout << "S3 [1/0]= ";
+            cin >> mov[7];
+            cout << "q3[º] = ";
+            cin >> mov[8];
             params=mov;
-            cout<<params;
+            
             c.execute("movArticular",params,result);
             cout << result;
             

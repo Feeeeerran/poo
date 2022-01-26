@@ -64,13 +64,14 @@ class panel_control_server(Cmd):
             self.estadoRobot = True            
             sms2 = "Robot ABB IRB 460 ENCENDIDO"
             self.do_llenar_reporte(sms2 + "\n" + sms1)
+            sms3 = miRobot.ejectutar_orden(sms1)
             self.estadoServidor=True
 
             if self.aprendizaje:
                 self.do_llenar_aprendizaje(sms1)
 
             if self.serv:
-                print (sms2)
+                print (sms3+'\n'+sms2)
             else:
                 return sms2
 
@@ -91,12 +92,13 @@ class panel_control_server(Cmd):
             self.estadoRobot=False 
             sms2 = "Robot ABB IRB 460 APAGADO"
             self.do_llenar_reporte(sms2 + "\n" + sms1)
+            sms3 = miRobot.ejectutar_orden(sms1)
 
             if self.aprendizaje:
                 self.do_llenar_aprendizaje(sms1)
 
             if self.serv:
-                print (sms2)
+                print (sms3+'\n'+sms2)
             else:
                 return sms2
         
@@ -105,56 +107,58 @@ class panel_control_server(Cmd):
         """Movimiento circular: ingrese velocidad, sentido y angulo de las 3 articulaciones en el siguiente formato: V1,S1,q1,V2,S2,q2,V3,S3,q3"""
 
         args=args.split()
-        sms = miRobot.verificar(1,int(args[0]),int(args[3]),int(args[6]),bool(args[1]),bool(args[4]),bool(args[7]),int(args[2]),int(args[5]),int(args[8]))
+        sms1 = miRobot.verificar(1,int(args[0]),int(args[3]),int(args[6]),bool(args[1]),bool(args[4]),bool(args[7]),int(args[2]),int(args[5]),int(args[8]))
 
-        if  sms == "Error1":
+        if  sms1 == "Error1":
             if self.serv:
                 print ("Velocidad angular fuera de rango, velocidad maxima: ", miRobot.VA_max)
             else:
                 return "Velocidad angular fuera de rango, velocidad maxima: ", miRobot.VA_max
-        elif  sms == "Error2":
+        elif  sms1 == "Error2":
             if self.serv:
                 print ("Limites articulares excedidos, angulo maximo ", miRobot.LA)
             else:
                 return "Limites articulares excedidos, angulo maximo ", miRobot.LA
         else:
-            self.do_llenar_reporte(sms)
+            self.do_llenar_reporte(sms1)
+            sms2 = miRobot.ejectutar_orden(sms1)
 
             if self.aprendizaje:
-                self.do_llenar_aprendizaje(sms)
+                self.do_llenar_aprendizaje(sms1)
 
             if self.serv:
-                print ("Movimiento exitoso")
+                print (sms2)
             else:
-                return "Movimiento exitoso"
+                return sms2
 
 
     def do_ml_efector(self,args):
         """Movimiento lineal: ingrese coordenadas del efector final y velocidad en el siguiente formato: X,Y,Z,V"""
         
         args=args.split()
-        sms = miRobot.verificar(2,int(args[0]),int(args[1]),int(args[2]),int(args[3]))
+        sms1 = miRobot.verificar(2,int(args[0]),int(args[1]),int(args[2]),int(args[3]))
         
-        if  sms == "Error1":
+        if  sms1 == "Error1":
             if self.serv:
                 print ("Velocidad fuera de rango, velocidad maxima ", miRobot.VL_max)
             else:
                 return "Velocidad fuera de rango, velocidad maxima ", miRobot.VL_max
-        elif  sms == "Error2":
+        elif  sms1 == "Error2":
             if self.serv:
                 print ("Punto final fuera del espacio de trabajo, Limites maximos:""\n x: 0-",miRobot.dim_anchura,"\n y: 0-",miRobot.dim_profundidad,"\n z: 0-",miRobot.dim_altura)
             else:
                 return "Punto final fuera del espacio de trabajo, Limites maximos:""\n x: 0-",miRobot.dim_anchura,"\n y: 0-",miRobot.dim_profundidad,"\n z: 0-",miRobot.dim_altura
         else:
-            self.do_llenar_reporte(sms)
+            self.do_llenar_reporte(sms1)
+            sms2 = miRobot.ejectutar_orden(sms1)
 
             if self.aprendizaje:
-                self.do_llenar_aprendizaje(sms)
+                self.do_llenar_aprendizaje(sms1)
 
             if self.serv:
-                print ("Movimiento exitoso")
+                print (sms2)
             else:
-                return "Movimiento exitoso"
+                return sms2
 
 
     def do_estado_efector(self,opc):
@@ -179,12 +183,13 @@ class panel_control_server(Cmd):
             sms = miRobot.verificar(3,arg)
             miRobot.estadoEfector = True
             self.do_llenar_reporte('Abriendo pinza\n' + sms)
+            sms2 = miRobot.ejectutar_orden(sms)
 
             if self.aprendizaje:
                 self.do_llenar_aprendizaje(sms)
 
             if self.serv:
-                print ('Abriendo pinza') 
+                print (sms2 + '\nAbriendo pinza') 
             else: 
                 return 'Abriendo pinza'
 
@@ -204,12 +209,13 @@ class panel_control_server(Cmd):
             sms = miRobot.verificar(3,arg)
             miRobot.estadoEfector=False 
             self.do_llenar_reporte('Cerrando pinza\n' + sms)
+            sms2 = miRobot.ejectutar_orden(sms)
 
             if self.aprendizaje:
                 self.do_llenar_aprendizaje(sms)
 
             if self.serv:
-                print ('Cerrando pinza')
+                print (sms2 + '\nCerrando pinza')
             else:
                 return 'Cerrando pinza'
 

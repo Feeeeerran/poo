@@ -1,10 +1,31 @@
 Robot ABB IRB 460 ENCENDIDO
 { M17 }
-     Fecha: 14/01/22 Hora: 12:19:36
+     Fecha: 16/12/21 Hora: 10:42:02
+
+Modo aprendizaje ACTIVADO
+     Fecha: 16/12/21 Hora: 10:42:15
 
 { G01 X0000 Y0000 Z3690 F2500.0 } 
-     Fecha: 14/01/22 Hora: 12:20:01
+     Fecha: 16/12/21 Hora: 10:42:26
 
+{ G01 X23 Y23 Z23 F30 }
+     Fecha: 16/12/21 Hora: 10:42:31
 
-     Fecha: 14/01/22 Hora: 12:20:33
+{ G01 X-238.02563586845392 Y1524.6330310297747 Z689.8722334463561 F30 }
+     Fecha: 16/12/21 Hora: 10:42:52
+
+Abriendo pinza
+{ G29 }
+     Fecha: 16/12/21 Hora: 10:43:02
+
+Cerrando pinza
+{ G30 }
+     Fecha: 16/12/21 Hora: 10:43:14
+
+Robot ABB IRB 460 APAGADO
+{ M18 }
+     Fecha: 16/12/21 Hora: 10:43:23
+
+Modo aprendizaje DESACTIVADO
+     Fecha: 16/12/21 Hora: 10:43:29
 

@@ -4,6 +4,7 @@ from excepciones import VL_lim
 from excepciones import PA_lim
 from excepciones import PL_lim
 import math
+import serial, time
 
 class Robot:
 
@@ -21,12 +22,20 @@ class Robot:
         self.estadoEfector = False
 
 
-    # def ejectutar_orden():
-    #     orden = generar_codigoG()
-    #     #write
-    #     #read
-    #     #enviar al dispositivo y despues retorna
-    #     pass
+    def ejectutar_orden(codigoG,opc):
+        arduino = serial.Serial("COM5", 9600)
+        time.sleep(2)
+        s = str(codigoG)
+        arduino.write(s.encode())
+
+        rta = arduino.readline()
+        a = rta.splitlines()
+        b=str(a[0])
+        c=b.replace("b","")
+        d=c.replace("'","")
+        arduino.close()
+
+        return d
 
 
     def generar_codigoG(self,cond,x=0,y=0,z=0,f=0):
