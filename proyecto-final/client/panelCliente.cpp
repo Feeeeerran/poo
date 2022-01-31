@@ -4,63 +4,49 @@ using namespace std;
 using namespace XmlRpc;
 #include "panelCliente.h"
 
-bool PanelCliente::identificar(XmlRpc::XmlRpcClient c, string Usuario){
-    bool estado;
-    XmlRpc::XmlRpcValue arg, result;
-    arg=Usuario;
-    c.execute("identificar",arg,result);
-    cout<<endl;
-    cout<<result;
-    if (result=="No hay ningun otro usuario controlando el robot."){
-        estado= true;
-    }else{
-        estado= false;
+
+//  Funcion para verificar si hay un usuario usando el robot
+// La misma obtiene datos del lado del servidor como el nombre del usuario que esta usando el robot
+bool PanelCliente::verificar(XmlRpcClient c){
+    system("clear");
+    XmlRpcValue arg, result;
+    c.execute("verificar",usuario,result);
+    cout << result[0];
+    while (result[1] != "1") {
+        cout << endl;
+        cout << "Presione enter para intentar nuevamente" << endl;
+        cin.ignore();
+        system("clear");
+
+        c.execute("verificar",usuario,result);
+        cout << result[0];
     }
-    return estado;
+
+    return true;
 }
 
-bool PanelCliente::conectar(XmlRpc::XmlRpcClient c,int conecta) {
-        XmlRpc::XmlRpcValue arg, result;
-        arg = conecta;
-        c.execute("conectar",arg,result);
-        cout << result;
-    if (conecta == 1 ) {
-        return true;
+
+// opc = 1 entonces encender
+// opc = 0 entonces apagar
+void PanelCliente::encender(XmlRpcClient c,int opc) {
+    XmlRpcValue arg, result;
+    c.execute("arrancar",opc,result);
+    cout << result[0];
+
+    if (result[1] == "1") {
+        robot = true;
     } else {
-        c.close();
-        return false;
+        robot = false;
     }
 }
 
-
-bool PanelCliente::encender(XmlRpc::XmlRpcClient c,int opc,bool conexion) {
-    bool arranque;
-    if (conexion){
-        XmlRpc::XmlRpcValue arg, result;
-        arg = opc;
-        c.execute("arrancar",arg,result);
-        cout << result;
-        arranque=true;
-    }else{
-        if (opc==1){
-            cout<<"No se puede encender porque esta desconectado"<<endl;
-            arranque=false;
-        }else if (opc==0){
-            cout<<"No se puede apagar porque esta desconectado"<<endl;
-            arranque=false;
-        }
-    }  
-    return arranque;  
-}
-
-void PanelCliente::manual(XmlRpc::XmlRpcClient c,int accion,bool arranque,bool conecta) {
+void PanelCliente::manual(XmlRpcClient c,int accion) {
     // Al metodo le entra la accion a realizar, segun el numero es la funcion que llamaremos al servidor
-    if (conecta && arranque){
+    if (conexion && robot){
         if (accion == 1) {
         // 1.Mov angular articular
-            XmlRpc::XmlRpcValue params, result;
-            char mov[30];
-            cin.getline(mov,30,'\n');
+            XmlRpcValue params ,result;
+            string mov[9];
 
             cout << "Para la primer articulacion:" << endl;
             cout << "V1[mm/s] = ";
@@ -69,6 +55,7 @@ void PanelCliente::manual(XmlRpc::XmlRpcClient c,int accion,bool arranque,bool c
             cin >> mov[1];
             cout << "q1[º] = ";
             cin >> mov[2];
+            cout << endl;
 
             cout << "Para la segunda articulacion:" << endl;
             cout << "V2[mm/s] = ";
@@ -77,6 +64,7 @@ void PanelCliente::manual(XmlRpc::XmlRpcClient c,int accion,bool arranque,bool c
             cin >> mov[4];
             cout << "q2[º] = ";
             cin >> mov[5];
+            cout << endl;
 
             cout << "Para la tercer articulacion:" << endl;
             cout << "V3[mm/s] = ";
@@ -85,96 +73,101 @@ void PanelCliente::manual(XmlRpc::XmlRpcClient c,int accion,bool arranque,bool c
             cin >> mov[7];
             cout << "q3[º] = ";
             cin >> mov[8];
-            params=mov;
-            
-            c.execute("movArticular",params,result);
+            cout << endl;
+
+            // Para poder enviar el todo junto tengo que concatenar todo los strings
+            string all = mov[0];
+            for (int i = 1; i < 9; i++) {
+                all = all + " " +mov[i];
+            }
+
+            // params = mov[0];
+            c.execute("movArticular",all,result);
             cout << result;
             
         } else if (accion == 2) {
         // 2.Mov lineal del efector
-            int X,Y,Z,V;
-            int movimientos[4];
+            string mov[4];
 
             XmlRpc::XmlRpcValue result;
             XmlRpc::XmlRpcValue params;
 
-            cout << "Ingrese las coordenadas en milimetros [mm] para mover el efector en el espacio" << endl;
-            cout << "X: ";
-            cin >> X;
+            cout << "Ingrese las coordenadas en milimetros [mm] para mover el efector en el espacio" << endl << endl;
+            cout << " Coordenada X: ";
+            cin >> mov[0];
             cout << endl;
 
-            cout << "Y: ";
-            cin >> Y;
+            cout << " Coordenada Y: ";
+            cin >> mov[1];
             cout << endl;
 
-            cout << "Z: ";
-            cin >> Z;
+            cout << " Coordenada Z: ";
+            cin >> mov[2];
             cout << endl;
 
-            cout << "V[mm/s]: ";
-            cin >> V;
+            cout << " Velocidad [mm/s]: ";
+            cin >> mov[3];
             cout << endl;
 
-            movimientos[0] = X;
-            movimientos[1] = Y;
-            movimientos[2] = Z;
-            movimientos[3] = V;
-            params=movimientos;
-            c.execute("movEfector",params,result);
-            cout<<result<<endl;
+            string all = mov[0];
+            for (int i = 1; i < 4; i++) {
+                all = all + " " +mov[i];
+            }
+
+            c.execute("movEfector",all,result);
+            cout << result << endl;
 
         } else if (accion == 3) {
             // 3.Actividad del efector
+            system("clear");
             int opc;
             XmlRpc::XmlRpcValue noArgs,arg, result;
             arg=opc;
             c.execute("estadoEfector",arg,result);
-            cout << "Estado del efector: " << result;
+            cout << "Estado del efector: " << result << endl;
             cout<<endl;
             cout << "Determine la accion que quiere realizar" << endl;
             cout << "1 --> Abrir la pinza" << endl;
             cout << "0 --> Cerrar la pinza" << endl;
+            cout << "   >> ";
             cin >> opc;
 
 
             arg = opc;
             c.execute("efector",arg,result);
-            cout << result;
+            cout << endl << result;
 
         } else if (accion == 4) {
         // 4.Homing
             XmlRpc::XmlRpcValue arg, result;
-            arg=accion;
-            c.execute("homing",arg,result);
+            c.execute("homing",accion,result);
             cout << result;
 
         } else if (accion == 5) {
             // 5.Aprendizaje
             XmlRpc::XmlRpcValue arg, result;
-            arg=accion;
-            c.execute("aprendizaje",arg,result);
+            c.execute("aprendizaje",accion,result);
             cout << result;
             
         } else {
             cout << "La opcion ingresada no es valida";
         }
-    }else if(conecta && arranque==false){
-        cout<<"No se puede ejecutar esta accion"<<endl
-            <<"El robot se encuentra apagado"<<endl;
-    }else if(conecta==false){
-        cout<<"No se puede ejecutar esta accion"<<endl
-            <<"El robot se encuentra desconectado y apagado"<<endl;
+    } else if (conexion && ~robot){
+        cout << "No se puede ejecutar esta accion" << endl
+            << "El robot se encuentra apagado" << endl;
+    } else if (~conexion){
+        cout << "No se puede ejecutar esta accion" << endl
+            << "El robot se encuentra desconectado y apagado" << endl;
     }
 }
 
 
-void PanelCliente::automatico(XmlRpc::XmlRpcClient c,bool arranque,bool conecta){
+void PanelCliente::automatico(XmlRpcClient c){
     XmlRpc::XmlRpcValue arg, result;
     int largo;
-    if (conecta && arranque){
+    if (conexion && robot){
         arg=1;
-        cout<<"Modo automatico ACTIVADO"<<endl
-            <<endl;
+        cout<<"Modo automatico ACTIVADO" << endl <<endl;
     c.execute("automatico",arg, result);
     largo= result.size();
     cout<<"        EJECUTANDO CODIGO G"<<endl
@@ -184,16 +177,15 @@ void PanelCliente::automatico(XmlRpc::XmlRpcClient c,bool arranque,bool conecta)
     }
     cout<<endl
         <<"        EJECUCION FINALIZADA"<<endl;
-    }else if(conecta && arranque==false){
+    }else if(conexion && ~robot) {
         cout<<"No se puede ejecutar esta accion"<<endl
             <<"El robot se encuentra apagado"<<endl;
-    }else if(conecta==false){
+    }else if(~conexion){
         cout<<"No se puede ejecutar esta accion"<<endl
             <<"El robot se encuentra desconectado y apagado"<<endl;
     }
 
 }
-
 
 void PanelCliente::reporte(XmlRpc::XmlRpcClient c,int opc){
     int largo;
@@ -206,7 +198,3 @@ void PanelCliente::reporte(XmlRpc::XmlRpcClient c,int opc){
     }
 }
 
-void PanelCliente::finalizar(XmlRpc::XmlRpcClient c){
-    XmlRpc::XmlRpcValue Noargs, result;
-    c.execute("finalizar",Noargs, result);
-}

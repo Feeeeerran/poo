@@ -9,32 +9,69 @@ using namespace std;
 #include "XmlRpc.h"
 using namespace XmlRpc;
 
-// Funcion para verificar lo ingresado por el usuario
-int verificar(int num,int max);
+// Declaracion de la funcion para verificar lo ingresado por el usuario
+int verificarOpc(int num,int max);
 
 int main() {
     system("clear");
-    int opc=0;
-    bool i=true;
-    bool estado,conexion,arranque;
-    char Usuario[20];
+    int opc = 0;
+    string estadoRobot, estadoServidor;
     // Para entrar en bucle al menu
-    bool flag=true;
-    // Conectamos al servidor pero deberiamos tener una fucnion que conecte --> A lo sumo que sea una propiedad de la clase panelCliente generar dicha conexion
     int port = 8000;
-    XmlRpcClient client("127.0.0.1", port);
-    
+    bool flag = false;
+
 
     // Instanciamos un objeto mainPanel de la clase panelCliente
     PanelCliente panel;
 
-    cout<<"Hola usuario. Por favor identifiquese a contuacion:"<<endl;
-    cout<<">>";
-    cin.getline(Usuario,20,'\n');
-    // Loop para el menu
-    while(flag){
+    cout << "Hola usuario!" << endl;
+    cout << "Por favor, ingrese su nombre" << endl;
+    cout << ">> ";
+    getline(cin,panel.usuario);
 
-        cout << endl;
+    system("clear");
+    cout << " >>>>>>>>>>> Bienvenido "<< panel.usuario << " <<<<<<<<<<<<<" << endl;
+    cout << endl;
+
+
+
+    XmlRpcClient client("127.0.0.1", port);
+    
+
+    // En caso de que el servidor este ocupado con otro usuario debemos pedirle al usuario que espere
+    panel.conexion = panel.verificar(client);
+
+    // Una vez se accede al panel, se ubica el estado del robot
+    XmlRpcValue arg,result;
+    client.execute("estadoRobot",arg,result);
+    if (result == "1") {
+        // El robot esta encendido
+        panel.robot = true;
+    } else {
+        // El robot esta apagado
+        panel.robot = false;
+    }
+
+
+
+
+    // Loop para el menu
+    while (flag == false){
+        // Para dejar los estados en el panel
+        if (panel.robot == true) {
+            estadoRobot = "encendido";
+        } else {
+            estadoRobot = "apagado  ";
+        }
+
+        if (panel.conexion == true) {
+            estadoServidor = "conectado   ";
+        } else {
+            estadoServidor = "desconectado";
+        }
+
+        
+        cout << endl << endl << endl;
         cout<<"|============================================================|"<<endl
             <<"|                        MENU PRINCIPAL                      |"<<endl
             <<"|                                                            |"<<endl
@@ -44,42 +81,54 @@ int main() {
             <<"| 4--> Modo automatico                                       |"<<endl
             <<"| 5--> Reporte                                               |"<<endl
             <<"| 0--> Finalizar                                             |"<<endl
+            <<"|                                                            |"<<endl
+            <<"| Estado del robot: "<<estadoRobot<<"                                |"<<endl
+            <<"| Estado de conexion: "<<estadoServidor<<"                           |"<<endl
             <<"|============================================================|"<<endl;
 
         // Tomamos la opcion del usuario
-        cout << "Ingrese su opcion por favor" << endl;
+        cout << "\nIngrese su opcion por favor" << endl;
         cout << "   >> ";
         cin >> opc;
         cout << endl;
 
         // Funcion que verifica que el numero ingresado por el usuario este dentro de las opciones
-        verificar(opc,5);
+        opc = verificarOpc(opc,5);
         system("clear");
 
         // Entramos al menu y las opciones las validamos con un switch
-        switch (opc){
+        switch (opc) {
             case 1:
                 cout << "Usted ha elegido conectar/desconectar con el servidor" << endl << endl;
                 cout << "1 --> Conectar" << endl;
                 cout << "0 --> Desconectar" << endl;
                 cin >> opc;
-                verificar(opc,1);
-                conexion=panel.conectar(client,opc);
-                 if (i){
-                     estado=panel.identificar(client,Usuario);
-                     i=false;
-                    if (estado==false){
-                        flag= false;
-                    }
-                 }
+                opc = verificarOpc(opc,1);
+
+                if (opc == 1 && panel.conexion == false) {
+                    XmlRpcClient client("127.0.0.1",port);
+                    panel.conexion = panel.verificar(client);
+                } else if (opc == 1 && panel.conexion == true) {
+                    cout << "Ya se encuentra conectado al servidor" << endl;
+                } else if (opc == 0 && panel.conexion == false) {
+                    cout << "Ya se encuentra desconectado del servidor" << endl;
+                } else {
+                    XmlRpcValue arg, result;
+                    client.execute("desconectar",arg,result);
+                    client.close();
+                    panel.conexion = false;
+                    cout << "Se ha desconectado del servidor de forma exitosa";
+                }
             break;
 
             case 2:
                 cout << "Usted ha elegido encender/apagar el robot" << endl << endl;
                 cout << "1 --> Encender el robot" << endl;
                 cout << "0 --> Apagar el robot" << endl;
+                cout << "   >> ";
                 cin >> opc;
-                arranque=panel.encender(client,opc,conexion);
+                opc = verificarOpc(opc,1);
+                panel.encender(client,opc);
             break;
 
             case 3:
@@ -95,25 +144,24 @@ int main() {
                     <<"| 0 --> Salir del modo                                    |"<<endl
                     <<"|=========================================================|"<<endl;
 
-                cout << "Ingrese su opcion del modo manual por favor" << endl;
+                cout << "\nIngrese su opcion del modo manual por favor" << endl;
                 cout << "   >> ";
                 cin >> manual;
                 cout << endl;
 
                 // Verificamos lo ingresado
-                verificar(opc,5);
-
+                opc = verificarOpc(opc,5);
+                system("clear");
                 // Como al metodo manual de la clase panel de control le entra la accion a realizar, directamente llamamos a la misma
-                if (manual !=0) {
-                    panel.manual(client,manual,conexion,arranque);
+                if (manual != 0) {
+                    panel.manual(client,manual);
                 }
-
             break;
 
 
             // Modo automatico
             case 4:
-                panel.automatico(client,arranque,conexion);
+                // panel.automatico(client,arranque,conexion);
             break;
 
 
@@ -123,7 +171,7 @@ int main() {
                 cout << endl;
                 cout<< "           REPORTE"<<endl;
                 cout << endl;
-                panel.reporte(client,opc);
+                // panel.reporte(client,opc);
             break;
 
 
@@ -132,26 +180,35 @@ int main() {
                 system("clear");
                 cout << endl;
                 cout << endl;
-                cout << "          |==================================================|"<<endl;
-                cout << "          |                PROGRAMA FINALIZADO               |" << endl;
-                cout<<  "          |==================================================|"<<endl;
+                cout << "       |==================================================|"<<endl;
+                cout << "       |                PROGRAMA FINALIZADO               |"<<endl;
+                cout<<  "       |==================================================|"<<endl;
                 cout << endl;
                 cout << endl;
-                panel.finalizar(client);
-                flag=false;
             break;
 
 
             // Opcion incorrecta (?
             default:
+                cout << endl;
+                cout << "La opcion ingresada no es valida, intente nuevamente" << endl;
+                cout << endl;
             break;
         }
-    }      
-return 0;
+
+        if (opc == 0) {
+            XmlRpcValue arg, result;
+            flag = true;
+            client.execute("desconectar",arg,result);
+            client.close();
+            cout << flag;
+        }
+    }
+    return 0;
 }
 
 
-int verificar(int num,int max) {
+int verificarOpc(int num,int max) {
     // entra el num del usuario y entra el max
     // Verificar si el num > max lo metemos dentro de un bucle que no sale hasta colocar la resp correcta
 

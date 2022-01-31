@@ -1,0 +1,5 @@
+> Se podria agregar un validador de usuario + id + password?
+> Deberian modificarse algunas propiedades directamente desde los metodos
+> Ya no hay un metodo para conectar, usamos verificar, y si da true entonces conectamos directamente desde el panel
+
+> Las lineas donde se hace ejecutar orden estan todas comentadas

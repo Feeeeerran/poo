@@ -7,107 +7,100 @@ import sys
 
 miRobot = Robot()
 
-class panel_control_server(Cmd):
+class Panel_control_server(Cmd):
 
     def __init__(self, arg = False):
-        Cmd.__init__(self)              #Constructor de la clase madre
+        Cmd.__init__(self)
+        self.nombreUsuario = str
         self.serv = arg
-        self.estadoServidor = False
+        # estadoRobot false = que esta apagado (inicialmente false)
         self.estadoRobot = False
+        # estadoServer false = que no hay un usuario usando el robot (inic false)
+        self.estadoServer = False
         self.aprendizaje = False
-        self.usuario=False
-        self.NombreUsuario= str
 
 
-    def conexion_desconexion(self,opc):
-        """Realiza la conexion cliente-servidor"""
-        opc=str(opc)
-        if self.serv:
-            print ("Imposible conectar con cliente desde servidor")
-        else:         
-            if opc == '1' and self.estadoServidor == False:
-                self.do_llenar_reporte("Servidor CONECTADO")      
-                self.estadoServidor=True
-                return "Servidor CONECTADO"  
-
-            elif opc == '1' and self.estadoServidor == True:
-                return "El servidor ya esta conectado"
-
-            elif opc == '0' and self.estadoServidor == False:
-                return "El servidor ya esta desconectado"
-
-            elif opc == '0' and self.estadoServidor == True:
-                self.do_llenar_reporte("Servidor DESCONECTADO")
-                self.estadoServidor = False
-                return "Servidor DESCONECTADO"
-
-            
-    def do_estado_robot(self,opc):
-
-        if self.estadoRobot:
-            if self.serv:
-                print ('El robot esta encendido')
-            else:
-                return 'El robot esta encendido'
+    # Funcion para verificar si ya hay algun usuario
+    def verificar(self,usuario):
+        if self.estadoServer == False:
+            self.estadoServer = True
+            self.nombreUsuario = usuario
+            print("\nSe conecto {} al servidor".format(usuario))
+            return "Bienvenido al control del robot {} \n".format(usuario),"1"
         else:
-            if self.serv:
-                print ('El robot esta apagado') 
-            else: 
-                return 'El robot esta apagado'
+            print("\nAcceso denegado para {}, {} esta conectado en este momento".format(usuario,self.nombreUsuario))
+            return "\nEl usuario {} esta controlando el robot en estos momentos.\nIntente nuevamente mas tarde\n".format(self.nombreUsuario),"0"
 
 
+    # Le decimos al servidor que el usuario se ha desconectado
+    def desconectar(self):
+        if self.serv:
+            print("Ejecucion finalizada")
+            raise SystemExit
+        else:
+            self.estadoServer = False
+            print("\nSe desconecto {} del servidor".format(self.nombreUsuario))
+            self.nombreUsuario = ""
+
+    # Retorna estado del robot
+    def estado_robot(self):
+        if (self.estadoRobot == True):
+            return "1"
+        else:
+            return "0"
+
+    # Enciende o apaga al robot + condicionales
     def do_activar_desactivar(self,arg):
         """Ingresar 1 para encender el robot y 0 para apagarlo"""
-        arg=str(arg)
-        if arg == '1' and self.estadoRobot == False:
+        arg = str(arg)
+        if arg == "1" and self.estadoRobot == False:
             sms1 = miRobot.verificar(4,arg)
             self.estadoRobot = True            
-            sms2 = "Robot ABB IRB 460 ENCENDIDO"
+            sms2 = "\nRobot ABB IRB 460 ENCENDIDO"
             self.do_llenar_reporte(sms2 + "\n" + sms1)
-            sms3 = miRobot.ejectutar_orden(sms1)
-            self.estadoServidor=True
-
+            # sms3 = miRobot.ejectutar_orden(sms1)
+            sms3 = " "
+            self.estadoServer=True
             if self.aprendizaje:
                 self.do_llenar_aprendizaje(sms1)
-
             if self.serv:
                 print (sms3+'\n'+sms2)
-            else:
-                return sms2
+            return sms2,"1"
 
         elif arg == '1' and self.estadoRobot == True:
             if self.serv:
                 print ("El robot ya esta encendido")
             else:
-                return "El robot ya esta encendido"
+                return "\nEl robot ya esta encendido","1"
 
         elif arg == '0' and self.estadoRobot == False:
             if self.serv:
                 print ("El robot ya esta apagado")
             else:
-                return "El robot ya esta apagado"
+                return "\nEl robot ya esta apagado","0"
 
         elif arg == '0' and self.estadoRobot == True:
             sms1 = miRobot.verificar(4,arg)
             self.estadoRobot=False 
-            sms2 = "Robot ABB IRB 460 APAGADO"
+            sms2 = "\nRobot ABB IRB 460 APAGADO"
             self.do_llenar_reporte(sms2 + "\n" + sms1)
-            sms3 = miRobot.ejectutar_orden(sms1)
-
+            # sms3 = miRobot.ejectutar_orden(sms1)
+            sms3 = " "
             if self.aprendizaje:
                 self.do_llenar_aprendizaje(sms1)
 
             if self.serv:
                 print (sms3+'\n'+sms2)
             else:
-                return sms2
+                return sms2, "0"
         
 
+    # Movimiento de los distintos grados de libertad
     def do_mc_articulaciones(self,args):
         """Movimiento circular: ingrese velocidad, sentido y angulo de las 3 articulaciones en el siguiente formato: V1,S1,q1,V2,S2,q2,V3,S3,q3"""
 
         args=args.split()
-        sms1 = miRobot.verificar(1,int(args[0]),int(args[3]),int(args[6]),bool(args[1]),bool(args[4]),bool(args[7]),int(args[2]),int(args[5]),int(args[8]))
+        sms1 = miRobot.verificar(1,args[0],args[3],args[6],args[1],args[4],args[7],args[2],args[5],args[8])
 
         if  sms1 == "Error1":
             if self.serv:
@@ -121,8 +114,8 @@ class panel_control_server(Cmd):
                 return "Limites articulares excedidos, angulo maximo ", miRobot.LA
         else:
             self.do_llenar_reporte(sms1)
-            sms2 = miRobot.ejectutar_orden(sms1)
-
+            # sms2 = miRobot.ejectutar_orden(sms1)
+            sms2 = "Orden ejecutada sin problemas"
             if self.aprendizaje:
                 self.do_llenar_aprendizaje(sms1)
 
@@ -132,9 +125,12 @@ class panel_control_server(Cmd):
                 return sms2
 
 
+    # Movimientos lineales del efector
     def do_ml_efector(self,args):
         """Movimiento lineal: ingrese coordenadas del efector final y velocidad en el siguiente formato: X,Y,Z,V"""
-        
+
+        print(args)
+
         args=args.split()
         sms1 = miRobot.verificar(2,int(args[0]),int(args[1]),int(args[2]),int(args[3]))
         
@@ -150,7 +146,8 @@ class panel_control_server(Cmd):
                 return "Punto final fuera del espacio de trabajo, Limites maximos:""\n x: 0-",miRobot.dim_anchura,"\n y: 0-",miRobot.dim_profundidad,"\n z: 0-",miRobot.dim_altura
         else:
             self.do_llenar_reporte(sms1)
-            sms2 = miRobot.ejectutar_orden(sms1)
+            # sms2 = miRobot.ejectutar_orden(sms1)
+            sms2 = "Orden ejecutada sin problemas"
 
             if self.aprendizaje:
                 self.do_llenar_aprendizaje(sms1)
@@ -161,20 +158,22 @@ class panel_control_server(Cmd):
                 return sms2
 
 
+    # Devuelve el estado del efector
     def do_estado_efector(self,opc):
 
         if miRobot.estadoEfector:
             if self.serv:
-                print ('La pinza esta abierta')
+                print ('La pinza se encuentra abierta')
             else:
-                return 'La pinza esta abierta'
+                return "La pinza se encuentra abierta"
         else:
             if self.serv:
-                print ('La pinza esta cerrada') 
+                print ('La pinza se encuentra cerrada') 
             else: 
-                return 'La pinza esta cerrada'
+                return "La pinza se encuentra cerrada"
 
 
+    # Para abrir o cerrar el efector
     def do_actividad_efector(self,arg):
         """Actividad efector final: Ingrese 1 para abrir la pinza y 0 para cerrarla"""
 
@@ -183,8 +182,8 @@ class panel_control_server(Cmd):
             sms = miRobot.verificar(3,arg)
             miRobot.estadoEfector = True
             self.do_llenar_reporte('Abriendo pinza\n' + sms)
-            sms2 = miRobot.ejectutar_orden(sms)
-
+            # sms2 = miRobot.ejectutar_orden(sms)
+            sms2 = ""
             if self.aprendizaje:
                 self.do_llenar_aprendizaje(sms)
 
@@ -209,8 +208,8 @@ class panel_control_server(Cmd):
             sms = miRobot.verificar(3,arg)
             miRobot.estadoEfector=False 
             self.do_llenar_reporte('Cerrando pinza\n' + sms)
-            sms2 = miRobot.ejectutar_orden(sms)
-
+            # sms2 = miRobot.ejectutar_orden(sms)
+            sms2 = ""
             if self.aprendizaje:
                 self.do_llenar_aprendizaje(sms)
 
@@ -220,6 +219,7 @@ class panel_control_server(Cmd):
                 return 'Cerrando pinza'
 
 
+    # A posicion de homing
     def do_homing(self,opc):
         """Lleva al robot a su posicion de offset"""
 
@@ -238,8 +238,8 @@ class panel_control_server(Cmd):
     def do_aprendizaje(self,opc):
         """Activa/Desactiva el modo aprendizaje, para grabar los movimientos realizados"""
         
-        if self.aprendizaje==False:
-            self.aprendizaje=True
+        if self.aprendizaje == False:
+            self.aprendizaje = True
             ap = open('aprendizaje.txt','w')
             ap.write('<<ModoAprendizaje>>\n')     
             ap.close()
@@ -251,7 +251,7 @@ class panel_control_server(Cmd):
             else: 
                 return("Modo aprendizaje Activado")
 
-        elif self.aprendizaje==True:
+        elif self.aprendizaje == True:
             ap = open('aprendizaje.txt','a')
             ap.write('<<FIN>>\n')      
             ap.close()
@@ -319,7 +319,7 @@ class panel_control_server(Cmd):
 
     def do_llenar_reporte(self,orden):
         operacion='a'
-        if self.estadoServidor==False:
+        if self.estadoServer==False:
             operacion = 'w'
 
         reporte = open('Reporte.txt',operacion)
@@ -338,26 +338,8 @@ class panel_control_server(Cmd):
             ap.close() 
 
 
-    def identificar(self,Usuario):
-        if self.usuario==False:
-            self.usuario=True
-            self.NombreUsuario=Usuario
-            return "No hay ningun otro usuario controlando el robot."
-        else:
-            return "El usuario '"+ self.NombreUsuario + "' esta controlando el robot. Intente nuevamente mas tarde\n"
-    
-
-    def do_fin(self,args):
-        if self.serv:
-            print('Ejecución finalizada')
-            raise SystemExit
-        else:
-            self.usuario=False
-            return self.usuario
-
-
 if __name__=="__main__":
-    interprete=panel_control_server(True)
+    interprete=Panel_control_server(True)
     interprete.prompt='\nPor favor operario, ingrese una orden. Para conocer las funciones ingrese -help-: \n '
     interprete.doc_header = "Comandos con ayuda disponible"
     interprete.undoc_header = "Otros comandos"

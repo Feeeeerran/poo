@@ -52,7 +52,20 @@ class Robot:
 
 
     def verificar(self,m,v1,v2=0,v3=0,v4=0,v5=0,v6=0,v7=0,v8=0,v9=0):
-        if m==1:            #mc_articulaciones
+        
+        
+        v2 = int(v2)
+        v3 = int(v3)
+        v4 = bool(int(v4))
+        v5 = bool(int(v5))
+        v6 = bool(int(v6))
+        v7 = int(v7)
+        v8 = int(v8)
+        v9 = int(v9)
+
+        # mc articulaciones
+        if m==1:
+            v1 = int(v1)
             try:
                 if (v1>self.VA_max)|(v2>self.VA_max)|(v3>self.VA_max):
                     raise VA_lim
@@ -71,7 +84,9 @@ class Robot:
                 z = self.eslabones[0]+self.eslabones[1]*math.sin(v8)+self.eslabones[2]*math.sin(v8+v9)
                 return self.generar_codigoG(1,x,y,z,v3)
 
-        elif m==2:          #ml_efector
+        # ml efector
+        elif m==2:
+            v1 = int(v1)
             try:
                 if (v4>self.VL_max):
                     raise VL_lim
@@ -87,15 +102,16 @@ class Robot:
             else:
                 return self.generar_codigoG(1,v1,v2,v3,v4)
 
-        elif m==3:          #actividad_efector
+        #actividad_efector
+        elif m==3:          
             if v1=='1' and self.estadoEfector == False:
                 self.estadoEfector = True
                 return self.generar_codigoG(2)
             elif v1=='0' and self.estadoEfector == True:
                 self.estadoEfector = False
                 return self.generar_codigoG(3)
-
-        elif m==4:          #encender_motores
+        # encender motores
+        elif m==4:
             if v1=='1':
                 return self.generar_codigoG(4)            
             elif v1=='0':

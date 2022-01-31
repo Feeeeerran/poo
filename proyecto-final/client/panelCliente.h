@@ -9,15 +9,18 @@ using namespace XmlRpc;
 
 class PanelCliente {
     public:
-        bool conectar(XmlRpc::XmlRpcClient c,int conecta);
-        bool encender(XmlRpc::XmlRpcClient c,int opc,bool conexion);
-        void manual(XmlRpc::XmlRpcClient c,int accion,bool arranque,bool conecta);
-        void automatico(XmlRpc::XmlRpcClient c,bool arranque,bool conecta);
-        void reporte(XmlRpc::XmlRpcClient c,int opc);
-        bool identificar(XmlRpc::XmlRpcClient c,string Usuario);
-        void finalizar(XmlRpc::XmlRpcClient c);
-       // int verificar(int num,int max);
-        // string finalizar();
+        string usuario;
+        bool conexion = false;
+        bool robot;
+
+        bool verificar(XmlRpcClient c);
+        void encender(XmlRpcClient c,int opc);
+
+        void manual(XmlRpcClient c,int accion);
+        void automatico(XmlRpcClient c);
+
+        void reporte(XmlRpcClient c,int opc);
+
 };
 
 #endif
